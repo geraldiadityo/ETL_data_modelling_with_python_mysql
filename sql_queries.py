@@ -15,11 +15,11 @@ songplay_table_create = (
         start_time TIMESTAMP REFERENCES time (start_time),
         user_id INT REFERENCES users (user_id),
         level VARCHAR(100) NOT NULL,
-        song_id VARCHAR(100) REFERECES songs (song_id),
-        artist_id VARCHAR(100) REFERENCES artists (artists_id),
+        song_id VARCHAR(100) REFERENCES songs (song_id),
+        artist_id VARCHAR(100) REFERENCES artists (artist_id),
         session_id INT NOT NULL,
         location VARCHAR(100),
-        user_agent TEXT,
+        user_agent TEXT
     );
     """
 )
@@ -27,11 +27,11 @@ songplay_table_create = (
 user_table_create = (
     """
     CREATE TABLE IF NOT EXISTS users(
-        user_id INT NOT NULL PRIMARY_KEY,
+        user_id INT UNIQUE PRIMARY KEY,
         first_name VARCHAR(100),
         last_name VARCHAR(100),
         gender CHAR(1),
-        level VARCHAR(100) NOT NULL,
+        level VARCHAR(100) NOT NULL
     );
     """
 )
@@ -43,7 +43,7 @@ song_table_create = (
         title VARCHAR(100),
         artist_id VARCHAR(100) REFERENCES artists (artist_id),
         year INT CHECK (year >= 0),
-        duration FLOAT,
+        duration FLOAT
     );
     """
 )
@@ -51,11 +51,11 @@ song_table_create = (
 artist_table_create = (
     """
     CREATE TABLE IF NOT EXISTS artists(
-        artist_id VARCHAR(100) NOT NULL UNIQUE PRIMARY KEY,
+        artist_id VARCHAR(100) NOT NULL PRIMARY KEY,
         name VARCHAR(100),
         location VARCHAR(100),
         latitude DECIMAL(9,6),
-        longitude DECIMAL(9,6),
+        longitude DECIMAL(9,6)
     );
     """
 )
@@ -69,7 +69,7 @@ time_table_create = (
         week INT NOT NULL CHECK (week >= 0),
         month INT NOT NULL CHECK (month >= 0),
         year INT NOT NULL CHECK (year >= 0),
-        weekday VARCHAR(100) NOT NULL,
+        weekday VARCHAR(100) NOT NULL
     );
     """
 )
@@ -90,17 +90,14 @@ songplay_table_insert = (
 
 song_table_insert = (
     """
-    INSERT INTO songs (song_id, title, artist_id, year, duration) VALUES (%s, %s, %s, %s, %s) ON CONFLICT (song_id) DO NOTHING;
+    INSERT INTO songs (song_id, title, artist_id, year, duration) VALUES (%s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE song_id = song_id;
     """
 )
 
 artist_table_insert = (
     """
-    INSERT INTO artists (artist_id, name, location, latitude, longtitude) VALUES (%s, %s, %s, %s, %s)
-    ON CONFLICT (artist_id) DO UPDATE SET
-    location = EXCLUDED.location,
-    latitude = EXCLUDED.latitude,
-    longtitude = EXCLUDED.longtitude;
+    INSERT INTO artists (artist_id, name, location, latitude, longitude) VALUES (%s, %s, %s, %s, %s)
+    ON DUPLICATE KEY UPDATE artist_id = artist_id
     """
 )
 
