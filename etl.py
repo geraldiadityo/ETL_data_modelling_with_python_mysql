@@ -68,7 +68,7 @@ def process_data(cur, conn, filepath, func):
         print("{}/{} files process.".format(i,num_files))
 
 def main():
-    conn = sql.connect(host="127.0.0.1",user="admin",passwd="Ge@140019",db="sparkifydb",port=3306)
+    conn = sql.connect(host="127.0.0.1",user="__myusername",passwd="__mypassword",db="sparkifydb",port=3306)
     cur = conn.cursor()
     process_data(cur, conn, filepath='data/song_data', func=process_song_file)
     process_data(cur, conn, filepath='data/log_data', func=process_log_file)
