@@ -11,8 +11,8 @@ time_table_drop = "DROP TABLE IF EXISTS time"
 songplay_table_create = (
     """
     CREATE TABLE IF NOT EXISTS songplays(
-        songplay_id SERIAL NOT NULL PRIMARY KEY,
-        start_time TIMESTAMP REFERENCES time (start_time),
+        songplay_id SERIAL NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        start_time TIMESTAMP NOT NULL REFERENCES time (start_time),
         user_id INT REFERENCES users (user_id),
         level VARCHAR(100) NOT NULL,
         song_id VARCHAR(100) REFERENCES songs (song_id),
@@ -27,7 +27,7 @@ songplay_table_create = (
 user_table_create = (
     """
     CREATE TABLE IF NOT EXISTS users(
-        user_id INT UNIQUE PRIMARY KEY,
+        user_id INT PRIMARY KEY,
         first_name VARCHAR(100),
         last_name VARCHAR(100),
         gender CHAR(1),
@@ -78,13 +78,13 @@ time_table_create = (
 
 user_table_insert = (
     """
-    INSERT INTO users (user_id, first_name, last_name, gender, level) VALUES (%s, %s, %s, %s, %s) ON CONFLICT (user_id) DO UPDATE SET level = EXCLUDED.level;
+    INSERT INTO users (user_id, first_name, last_name, gender, level) VALUES (%s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE user_id = user_id;
     """
 )
 
 songplay_table_insert = (
     """
-    INSERT INTO songplays VALUES (DEFAULT, %s, %s, %s, %s, %s, %s, %s, %s);
+    INSERT INTO songplays (start_time, user_id, level,song_id, artist_id, session_id, location, user_agent) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
     """
 )
 
@@ -103,7 +103,7 @@ artist_table_insert = (
 
 time_table_insert = (
     """
-    INSERT INTO time VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT (start_time) DO NOTHING;
+    INSERT INTO time VALUES (%s, %s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE start_time = start_time;
     """
 )
 
@@ -111,7 +111,7 @@ time_table_insert = (
 
 song_select = (
     """
-    SELECT song_id, artist.artist_id
+    SELECT songs.song_id, artists.artist_id
     FROM songs JOIN artists ON songs.artist_id = artists.artist_id
     WHERE songs.title = %s
     AND artists.name = %s

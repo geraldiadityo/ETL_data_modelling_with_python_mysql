@@ -21,6 +21,39 @@ def process_song_file(cur,filepath):
     print(f"Record inserted for file {filepath}")
 
 
+def process_log_file(cur, filepath):
+    df = pd.read_json(filepath,lines=True)
+    df = df[df['page'] == 'NextSong'].astype({'ts':'datetime64[ms]','userId':'int64'})
+    t = pd.Series(df['ts'],index=df.index)
+
+    column_labes = ["timestamp","hour","day","weekofyear","month","year","weekday"]
+    time_data = []
+    for data in t:
+        time_data.append([data,data.hour,data.day,data.weekofyear,data.month,data.year,data.day_name()])
+    
+    time_df = pd.DataFrame.from_records(data=time_data,columns=column_labes)
+    for i, row in time_df.iterrows():
+        cur.execute(time_table_insert,list(row))
+    
+    user_df = df[['userId','firstName','lastName','gender','level']]
+    
+    for i, row in user_df.iterrows():
+        cur.execute(user_table_insert,list(row))
+    
+    for index, row in df.iterrows():
+        cur.execute(song_select,(row.song,row.artist,row.length))
+        results = cur.fetchone()
+        
+        if results:
+            songid, artisid = results
+        else:
+            songid, artisid = None, None
+        
+        songplay_data = (row.ts,row.userId,row.level,songid,artisid,row.sessionId,row.location,row.userAgent)
+        cur.execute(songplay_table_insert,songplay_data)
+
+
+
 def process_data(cur, conn, filepath, func):
     all_files = []
     for root, dirs ,files in os.walk(filepath):
@@ -38,6 +71,7 @@ def main():
     conn = sql.connect(host="127.0.0.1",user="admin",passwd="Ge@140019",db="sparkifydb",port=3306)
     cur = conn.cursor()
     process_data(cur, conn, filepath='data/song_data', func=process_song_file)
+    process_data(cur, conn, filepath='data/log_data', func=process_log_file)
     conn.close()
 
 
